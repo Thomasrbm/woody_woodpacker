@@ -1,58 +1,95 @@
-;  main modif le e_entry du programme a exec pour lui donner l adresse de 
-; ce programme en assembleur qui va s exec
-
-
-; donc rsp point sur argc suivi de argv[], envp[]
-; reste est indefini
-
-; jamais push rsp mais push tout les autres 
-; pour que le programme reprennet avec tout comme a valeur d origine
+%include "xtea.inc"
 
 
 section .data
     string: db "....WOODY....", 0x0A
 
-
 section .text
-    global _start   
-
+global _start
 
 _start:
-    ; 1. SAUVEGARDE des registres (push)
     push rax
-    push rdi
-    push rsi 
+    push rbx
+    push rcx
     push rdx
+    push rsi
+    push rdi
+    push r8
     push r9
+    push r10
+    push r11
+    push r12
+    push r13
+    push r14
+    push r15
 
-    mov rax, 1
-    mov rdi, 1 ;fd
+    ; ─── write(1, string, 14) ───
+    mov rax, 1                          ; syscall write
+    mov rdi, 1                          ; fd = stdout
     lea rsi, [rel string]
     mov rdx, 14
     syscall
 
-    cmp rax, 0
+    ; ─── mprotect(text_addr, text_size, RWX) ───
+    mov rax, 10                         ; syscall mprotect
+    mov rdi, 0x1111111111111111         ; placeholder text_addr
+    mov rsi, 0x2222222222222222         ; placeholder text_size
+    mov rdx, 7                          ; PROT_READ | WRITE | EXEC
+    syscall
 
-    mov rax, 10
-    mov rdi, 0x1111111111111111
-    mov rsi, 0x2222222222222222
-    mov rdx, 7                        ; perms = R|W|X = 1|2|4 = 7
+    ; ─── Setup boucle CTR ───
+    mov r12, 0x4444444444444444         ; placeholder text_addr (déchiffrement)
+    mov r13, 0x5555555555555555         ; placeholder text_size
+    add r13, r12                        ; r13 = pointeur de fin
+    xor r15, r15                        ; counter = 0
+    lea r14, [rel key]                  ; r14 = pointeur sur la clé
 
+.loop:
+    cmp r12, r13
+    jge .done
 
-    pop rax
+    ; ─── block[0..3] = counter low, block[4..7] = counter high ───
+    mov [rsp], r15d         ; r15d prend que a droite, block[0..3] = counter low (32 bits bas du counter)
+    mov rax, r15            ; rax = counter (copie 64 bits)
+    shr rax, 32             ; rax = counter >> 32 (décalage, garde les 32 bits hauts)
+    mov [rsp + 4], eax      ; block[4..7] = counter high (32 bits hauts du counter)
+
+    ; ─── XTEA(block, key) → keystream ───
+    XTEA_BLOCK
+
+    ; ─── data[i..i+7] ^= keystream ───
+    mov rax, [rsp]
+    xor [r12], rax
+
+    add r12, 8                          ; avancer pointeur
+    inc r15                             ; counter++
+    jmp .loop
+
+.done:
+    pop r15
+    pop r14
+    pop r13
+    pop r12
+    pop r11
+    pop r10
+    pop r9
+    pop r8
     pop rdi
     pop rsi
     pop rdx
-    pop r9    
+    pop rcx
+    pop rbx
+    pop rax
 
-    
-
-
-        
-    mov rax, 0x3333333333333333   ; placeholder original_entry
+    ; ─── Saut vers l'entry original ───
+    mov rax, 0x3333333333333333         ; placeholder original_entry
     jmp rax
 
 
-    
+key:
+    dd 0xAAAAAAAA  ; placeholder aussi
+    dd 0xBBBBBBBB
+    dd 0xCCCCCCCC
+    dd 0xDDDDDDDD
 
 section .note.GNU-stack noalloc noexec nowrite progbits
