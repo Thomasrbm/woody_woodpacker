@@ -45,6 +45,17 @@ t_map *get_binary_assets(const char *binary)
 	return map;
 }
 
+#if defined(__APPLE__) && defined(__MACH__)
+#include <mach-o/loader.h>
+#include <mach-o/fat.h>
+#include <mach-o/nlist.h>
+#endif
+
+#ifdef _WIN32
+#include <windows.h>
+#include <winnt.h>
+#endif
+
 #define KEY_NUMBER 4
 uint32_t *get_encrypt_key(void)
 {
@@ -52,7 +63,7 @@ uint32_t *get_encrypt_key(void)
 	if (fd < 0)
 		return NULL;
 
-	uint32_t *key = calloc(1, sizeof(uint32_t));
+	uint32_t *key = calloc(1, sizeof(uint32_t) * KEY_NUMBER);
 	if (!key)
 	{
 		close(fd);

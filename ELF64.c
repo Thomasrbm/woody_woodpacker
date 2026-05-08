@@ -58,6 +58,8 @@ void handle_ELF64(t_map *map)
 		(void *)((char *)map + code_segment->p_vaddr),
 		code_segment->p_memsz,
 		PROT_READ | PROT_WRITE | PROT_EXEC);
+	
+	xtea_iter((uint8_t *)map + code_segment->p_vaddr, code_segment->p_memsz, woody64->key);
 
 	free(woody64->key);
 	free(woody64);
