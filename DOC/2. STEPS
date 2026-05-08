@@ -11,3 +11,26 @@ chiffre la section .text  avec XTEA (eXtended TEA) — c'est mon pick pour toi.
 
 
 mprotect ; change les droits sur une zone memoire. (rendre non ecrivable.)
+
+
+
+
+
+
+1. Lire le binaire `sample` avec mmap
+2. Vérifier que c'est bien un ELF64 valide
+3. Trouver .text et le PT_NOTE
+4. Générer une clé aléatoire (lecture /dev/urandom)
+5. Afficher "key_value: <hex>"
+6. Allouer un buffer de sortie = copie de sample + place pour le stub
+7. Chiffrer la .text dans le buffer (XTEA en C)
+8. Patcher le stub : remplacer les placeholders par les vraies valeurs
+   (text_addr, text_size, entry_original, clé)
+9. Append le stub patché à la fin du buffer
+10. Modifier le PT_NOTE → PT_LOAD dans le buffer
+11. Modifier e_entry pour pointer vers le stub
+12. Écrire le buffer dans le fichier `woody`
+13. Quitter
+
+
+

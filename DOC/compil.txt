@@ -1,0 +1,25 @@
+main.c     ──gcc──>  main.o     ┐
+parse.c    ──gcc──>  parse.o    │
+inject.c   ──gcc──>  inject.o   ├──gcc link──>  woody_woodpacker
+xtea.c     ──gcc──> xtea.o      │
+stub_data.h (généré)            ┘  (inclus dans inject.c via #include)
+
+
+
+
+compil stub.s en .o a part.
+
+
+on fait  objcopy -O binary -j .text stub.o stub.bin
+
+met les bytes dans le .bin
+xxd -i stub.bin > stub_data.h  => convertit en tableau C
+
+
+./woody_woodpacker sample  => ca donne un woody
+
+
+sample reste intact.
+woody                   (CRÉÉ, c'est sample packé)
+
+

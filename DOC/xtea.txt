@@ -1,0 +1,135 @@
+'H' = 0x48
+'i' = 0x69
+'!' = 0x21
+
+
+key 
+
+key[0] = 0x11111111
+key[1] = 0x22222222
+key[2] = 0x33333333
+key[3] = 0x44444444
+
+
+XTEA_ENCRYPT : 
+
+counter = 0x0000000000000000
+
+kcb0 = 0
+kcb1 = 0
+
+
+kcb0 += (((kcb1 << 4) ^ (kcb1 >> 5)) + kcb1) ^ (sum + key[sum & 3]);
+0 += (((0x00000000 << 4) ^ (0x00000000 >> 5)) + 0x00000000) ^ (0x00000000 + key[0x00000000 & 3]);
+kcb0 += 0x00000000 ^ (0x00000000 + key[0x00000000 & 3]);
+kcb0 += 0x00000000 ^  (0x00000000 + key[0]);
+kcb0 += 0x00000000 ^ (0x00000000 + 0x11111111);
+kcb0 += 0x00000000 ^ 0x11111111;
+kcb0 += 0x11111111;
+
+
+sum = 2654435769
+
+
+kcb1 += (((kcb0 << 4) ^ (kcb0 >> 5)) + kcb0) ^ (sum + key[(sum >> 11) & 3]);
+
+
+kcb1 += (((0x11111111 << 4) ^ (0x11111111 >> 5)) + 0x11111111) ^ (0x9E3779B9 + key[(0x9E3779B9 >> 11) & 3]);
+kcb1 += ((0x11111110 ^ 0x00888888) + 0x11111111) ^ (0x9E3779B9 + key[(0x9E3779B9 >> 11) & 3]);
+kcb1 += (0x11999998 + 0x11111111) ^ (0x9E3779B9 + key[(0x9E3779B9 >> 11) & 3]);
+kcb1 += 0x22AAAAA9 ^ (0x9E3779B9 + key[(0x9E3779B9 >> 11) & 3]);
+kcb1 += 0x22AAAAA9 ^ (0x9E3779B9 + key[0x0013C6EF & 3]);
+kcb1 += 0x22AAAAA9 ^ (0x9E3779B9 + key[3]);
+kcb1 += 0x22AAAAA9 ^ (0x9E3779B9 + 0x44444444);
+kcb1 += 0x22AAAAA9 ^ 0xE27BBDFD;
+kcb1 += 0xC0D11754;
+kcb1 = 0xC0D11754
+
+
+kcb0 : 0x00000000 → 0x11111111
+kcb1 : 0x00000000 → 0xC0D11754
+sum  : 0x00000000 → 0x9E3779B9
+
+
+
+
+ca 32 fois.
+
+
+
+LES ITERATIONS : 
+
+itération 0 :
+  counter = 0x0000000000000000
+  block[0] = 0x00000000
+  block[1] = 0x00000000
+
+itération 1 :
+  counter = 0x0000000000000001
+  block[0] = 0x00000001
+  block[1] = 0x00000000
+
+itération 2 :
+  counter = 0x0000000000000002
+  block[0] = 0x00000002
+  block[1] = 0x00000000
+
+itération 3 :
+  counter = 0x0000000000000003
+  block[0] = 0x00000003
+  block[1] = 0x00000000
+  
+  
+  
+
+XTEA ITERATIONS :
+
+counter = 0x0000000000000000
+
+
+
+
+block[0] = counter & 0xFFFFFFFF = 0x00000000
+block[1] = counter >> 32         = 0x00000000
+
+
+Avant XTEA : block = [00 00 00 00 00 00 00 00]
+Après XTEA : block = [9F 3D AC 7B 02 E5 18 C4]   ← le KEYSTREAM
+
+
+hi! len 3
+
+
+donc  9F 3D AC de la key 
+
+
+0x48 = 0100 1000
+0x9F = 1001 1111
+       ───────── (XOR : 1 si différent, 0 si égal)
+0xD7 = 1101 0111
+
+
+ciphertext = [D7 54 8D]
+
+ãT? (? car non affi)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
