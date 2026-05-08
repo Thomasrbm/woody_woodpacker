@@ -6,6 +6,7 @@
     mov r8d, 32                  ; rounds = 32
     mov r9d, 0x9E3779B9          ; delta
 
+    
 %%r:
     ; ─── kcb0 += (((kcb1 << 4) ^ (kcb1 >> 5)) + kcb1) ^ (sum + key[sum & 3]) ───
     mov edx, ebx                 ; edx = kcb1

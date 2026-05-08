@@ -1,9 +1,5 @@
 %include "xtea.inc"
 
-
-section .data
-    string: db "....WOODY....", 0x0A
-
 section .text
 global _start
 
@@ -23,6 +19,11 @@ _start:
     push r14
     push r15
 
+    ; ─── stub_runtime base via lea RIP-relative (PIC) ───
+    ; rbx = adresse runtime du stub. utilise sous PIE/ASLR pour
+    ; reconstruire les addresses absolues a partir d'offsets relatifs.
+    lea rbx, [rel _start]
+
     ; ─── write(1, string, 14) ───
     mov rax, 1                          ; syscall write
     mov rdi, 1                          ; fd = stdout
@@ -32,14 +33,18 @@ _start:
 
     ; ─── mprotect(text_addr, text_size, RWX) ───
     mov rax, 10                         ; syscall mprotect
-    mov rdi, 0x1111111111111111         ; placeholder text_addr
-    mov rsi, 0x2222222222222222         ; placeholder text_size
+    mov rdi, rbx                        ; rdi = stub_runtime
+    mov rcx, 0x1111111111111111         ; placeholder: text_vaddr - stub_vaddr (signed)
+    add rdi, rcx                        ; rdi = text_runtime
+    mov rsi, 0x2222222222222222         ; placeholder: mprotect_size
     mov rdx, 7                          ; PROT_READ | WRITE | EXEC
     syscall
 
     ; ─── Setup boucle CTR ───
     sub rsp, 16                         ; add place sur la stack pour les operation
-    mov r12, 0x4444444444444444         ; placeholder text_addr (déchiffrement)
+    mov r12, rbx                        ; r12 = stub_runtime
+    mov rcx, 0x4444444444444444         ; placeholder: text_vaddr - stub_vaddr (deja meme valeur)
+    add r12, rcx                        ; r12 = text_runtime (decrypt)
     mov r13, 0x5555555555555555         ; placeholder text_size
     add r13, r12                        ; r13 = pointeur de fin
     xor r15, r15                        ; counter = 0
@@ -47,7 +52,7 @@ _start:
 
 .loop:
     cmp r12, r13
-    jge .done
+    jae .done                           ; jae = unsigned, safe sous PIE
 
     ; ─── block[0..3] = counter low, block[4..7] = counter high ───
     mov [rsp], r15d         ; r15d prend que a droite, block[0..3] = counter low (32 bits bas du counter)
@@ -83,10 +88,13 @@ _start:
     pop rbx
     pop rax
 
-    ; ─── Saut vers l'entry original ───
-    mov rax, 0x3333333333333333         ; placeholder original_entry
+    ; ─── Saut vers l'entry original (PIE-aware) ───
+    mov rax, 0x3333333333333333         ; placeholder: orig_entry - stub_vaddr (signed)
+    lea rcx, [rel _start]               ; rcx = stub_runtime
+    add rax, rcx                        ; rax = entry_runtime
     jmp rax
 
+string: db "....WOODY....", 0x0A
 
 key:
     dd 0xAAAAAAAA  ; placeholder aussi

@@ -1,5 +1,10 @@
+objs/
 *.o
 *.out
+*.bin
+woody
+woody_woodpacker
 sample
-woody-woodpacker
 sample.c
+test
+test2

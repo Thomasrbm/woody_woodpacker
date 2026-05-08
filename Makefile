@@ -1,33 +1,44 @@
 NAME    = woody_woodpacker
 
 CC      = gcc
-CFLAGS  = -Wall -Wextra -Werror
+CFLAGS  = -Wall -Wextra -Werror -Iincludes -Iobjs
 
-SRCS    = $(shell find $(SRC) -name "*.c")
-OBJS    = $(addprefix objs/, $(SRCS:.c=.o))
+SRC_DIR     = srcs
+INC_DIR     = includes
+STUB_DIR    = stub
+OBJ_DIR     = objs
+
+SRCS    = $(shell find $(SRC_DIR) -name "*.c")
+OBJS    = $(patsubst $(SRC_DIR)/%.c,$(OBJ_DIR)/%.o,$(SRCS))
+
+STUB_HDRS = $(OBJ_DIR)/stub.h $(OBJ_DIR)/stub32.h
 
 all: $(NAME)
 
-objs:
-	mkdir -p objs
+$(OBJ_DIR):
+	mkdir -p $(OBJ_DIR)
 
-stub.h: stub.s xtea.inc | objs
-	nasm -f elf64 stub.s -o objs/stub.o
-	objcopy -O binary -j .text objs/stub.o objs/stub.bin
-	xxd -i -n stub_bin objs/stub.bin > stub.h
+$(OBJ_DIR)/stub.h: $(STUB_DIR)/stub.s $(STUB_DIR)/xtea.inc | $(OBJ_DIR)
+	nasm -f elf64 -I$(STUB_DIR)/ $(STUB_DIR)/stub.s -o $(OBJ_DIR)/stub.o
+	objcopy -O binary -j .text $(OBJ_DIR)/stub.o $(OBJ_DIR)/stub.bin
+	xxd -i -n stub_bin $(OBJ_DIR)/stub.bin > $@
 
-objs/%.o: %.c stub.h | objs
+$(OBJ_DIR)/stub32.h: $(STUB_DIR)/stub32.s $(STUB_DIR)/xtea32.inc | $(OBJ_DIR)
+	nasm -f elf32 -I$(STUB_DIR)/ $(STUB_DIR)/stub32.s -o $(OBJ_DIR)/stub32.o
+	objcopy -O binary -j .text $(OBJ_DIR)/stub32.o $(OBJ_DIR)/stub32.bin
+	xxd -i -n stub32_bin $(OBJ_DIR)/stub32.bin > $@
+
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c $(STUB_HDRS) | $(OBJ_DIR)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 $(NAME): $(OBJS)
-	$(CC) $(CFLAGS) -o $(NAME) $(OBJS) -lm
+	$(CC) $(CFLAGS) -o $(NAME) $(OBJS)
 
 clean:
-	rm -rf objs
-	rm -f stub.h
+	rm -rf $(OBJ_DIR)
 
 fclean: clean
-	rm -f $(NAME)
+	rm -f $(NAME) woody
 
 re: fclean all
 
