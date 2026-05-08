@@ -3,7 +3,7 @@ NAME    = woody
 CC      = gcc
 CFLAGS  = -Wall -Wextra -Werror
 
-SRCS    = main.c
+SRCS    = $(shell find $(SRC) -name "*.c")
 OBJS    = $(addprefix objs/, $(SRCS:.c=.o))
 
 all: $(NAME)
