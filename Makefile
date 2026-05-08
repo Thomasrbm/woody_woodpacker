@@ -8,7 +8,12 @@ OBJS    = $(addprefix objs/, $(SRCS:.c=.o))
 
 all: $(NAME)
 
-objs/%.o: %.c
+stub.h: stub.s
+	nasm -f elf64 stub.s -o stub.o
+	objcopy -O binary -j .text stub.o stub.bin
+	xxd -i stub.bin > stub.h
+
+objs/%.o: %.c stub.h
 	mkdir -p objs
 	$(CC) $(CFLAGS) -c $< -o $@
 
@@ -17,6 +22,7 @@ $(NAME): $(OBJS)
 
 clean:
 	rm -rf objs
+	rm -f stub.o stub.bin stub.h
 
 fclean: clean
 	rm -f $(NAME)
