@@ -36,6 +36,7 @@ t_woody32 *build_ELF32_data(t_map *map)
 	woody32->offset = map->offset;
 	woody32->ehdr = (Elf32_Ehdr *)map->offset;
 	woody32->phdr = (Elf32_Phdr *)((char *)map->offset + woody32->ehdr->e_phoff);
+	woody32->key = get_encrypt_key();
 
 	return woody32;
 }
@@ -58,10 +59,12 @@ void handle_ELF32(t_map *map)
 		}
 	}
 
+	
 	mprotect(
 		(void *)((char *)map + code_segment->p_vaddr),
 		code_segment->p_memsz,
 		PROT_READ | PROT_WRITE | PROT_EXEC);
-
+	
+	free(woody32->key);
 	free(woody32);
 }

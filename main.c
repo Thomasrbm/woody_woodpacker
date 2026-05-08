@@ -45,8 +45,35 @@ t_map *get_binary_assets(const char *binary)
 	return map;
 }
 
+#define KEY_NUMBER 4
+uint32_t *get_encrypt_key(void)
+{
+	int fd = open("/dev/urandom", O_RDONLY);
+	if (fd < 0)
+		return NULL;
+
+	uint32_t *key = calloc(1, sizeof(uint32_t));
+	if (!key)
+	{
+		close(fd);
+		return NULL;
+	}
+
+	ssize_t len = read(fd, key, sizeof(uint32_t) * KEY_NUMBER);
+	close(fd);
+
+	if (len != sizeof(uint32_t) * KEY_NUMBER)
+	{
+		free(key);
+		return NULL;
+	}
+
+	return key;
+}
+
 int main(int ac, char **av)
 {
+	get_encrypt_key();
 	if (ac != 2)
 	{
 		dprintf(STDERR_FILENO, "Usage: %s <ELF32/64 binary>\n", av[0]);

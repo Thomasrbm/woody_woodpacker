@@ -22,6 +22,7 @@ typedef struct s_woody32
     void *offset;
     Elf32_Ehdr *ehdr;
     Elf32_Phdr *phdr;
+    uint32_t *key;
 } t_woody32;
 
 typedef struct s_woody64
@@ -30,6 +31,7 @@ typedef struct s_woody64
     void *offset;
     Elf64_Ehdr *ehdr;
     Elf64_Phdr *phdr;
+    uint32_t *key;
 } t_woody64;
 
 // ELF32.c
@@ -41,5 +43,8 @@ void handle_ELF32(t_map *map);
 bool is_ELF64(Elf64_Ehdr *header);
 t_woody64 *build_ELF64_data(t_map *map);
 void handle_ELF64(t_map *map);
+
+// main.c
+uint32_t *get_encrypt_key(void);
 
 #endif
