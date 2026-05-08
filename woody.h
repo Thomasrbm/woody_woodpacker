@@ -10,4 +10,6 @@
 #include <stdbool.h>
 #include <string.h>
 
+#define ERR_ELFCLASS "The binary has an unknown offset size"
+
 #endif
