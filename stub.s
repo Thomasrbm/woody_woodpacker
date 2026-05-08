@@ -38,6 +38,7 @@ _start:
     syscall
 
     ; ─── Setup boucle CTR ───
+    sub rsp, 16                         ; add place sur la stack pour les operation
     mov r12, 0x4444444444444444         ; placeholder text_addr (déchiffrement)
     mov r13, 0x5555555555555555         ; placeholder text_size
     add r13, r12                        ; r13 = pointeur de fin
@@ -66,6 +67,7 @@ _start:
     jmp .loop
 
 .done:
+    add rsp, 16                         ; libérer scratch
     pop r15
     pop r14
     pop r13
