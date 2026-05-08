@@ -1,0 +1,9 @@
+
+
+objdump -D -M intel sample | tail -n 20
+
+
+file sample
+ldd sample
+
+hexdump woody

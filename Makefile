@@ -1,4 +1,4 @@
-NAME    = woody_woodpacker
+NAME    = woody
 
 CC      = gcc
 CFLAGS  = -Wall -Wextra -Werror

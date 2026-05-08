@@ -1,0 +1,36 @@
+
+
+void *mmap(void *addr, size_t length, int prot, int flags, int fd, off_t offset);
+
+// addr  la ou sera mit en ram (NULL = le kernel choisit)
+// la taille du bin
+
+// prot  permission en memoire
+// PROT_READ | PROT_WRITE | PROT_EXEC
+
+
+// flag shared MAP_SHARED ou private  MAP_PRIVATE
+//  MAP_PRIVATE pour ne pas modifier, cree copie prive du process
+// shared, modif le vrai fichier.
+
+
+void *map = mmap(NULL, size, PROT_READ, MAP_PRIVATE, fd, 0);
+
+
+
+
+
+unsigned char *bytes = (unsigned char *)map;
+bytes[0]  // == 0x7F (magic ELF)
+bytes[1]  // == 0x45 ('E')
+bytes[2]  // == 0x4C ('L')
+bytes[3]  // == 0x46 ('F')
+bytes[4]  // si 32 ou 64
+
+0x01 = ELFCLASS32 (32-bit)
+0x02 = ELFCLASS64 (64-bit)
+
+
+
+// modifie le prot de MMAP
+mprotect(addr, size, PROT_READ | PROT_WRITE);

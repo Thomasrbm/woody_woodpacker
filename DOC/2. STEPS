@@ -1,0 +1,13 @@
+
+
+
+
+Parser le binaire d origine avec mmap
+
+lire /dev/urandom pour avoir une suite de N random
+
+
+chiffre la section .text  avec XTEA (eXtended TEA) — c'est mon pick pour toi. 
+
+
+mprotect ; change les droits sur une zone memoire. (rendre non ecrivable.)
