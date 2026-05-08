@@ -31,6 +31,7 @@ t_woody64 *build_ELF64_data(t_map *map)
 	woody64->offset = map->offset;
 	woody64->ehdr = (Elf64_Ehdr *)map->offset;
 	woody64->phdr = (Elf64_Phdr *)((char *)map->offset + woody64->ehdr->e_phoff);
+	woody64->key = get_encrypt_key();
 
 	return woody64;
 }
@@ -58,5 +59,6 @@ void handle_ELF64(t_map *map)
 		code_segment->p_memsz,
 		PROT_READ | PROT_WRITE | PROT_EXEC);
 
+	free(woody64->key);
 	free(woody64);
 }
