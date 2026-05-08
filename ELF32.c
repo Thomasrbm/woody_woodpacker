@@ -45,4 +45,23 @@ void handle_ELF32(t_map *map)
 	t_woody32 *woody32 = build_ELF32_data(map);
 	if (!woody32)
 		return ;
+
+	Elf32_Phdr *code_segment = NULL;
+	for (int i = 0; i < woody32->ehdr->e_phnum; i++)
+	{
+		Elf32_Phdr *tmp = &woody32->phdr[i];
+
+		if (tmp->p_type == PT_LOAD && (tmp->p_flags & PF_X))
+		{
+			code_segment = tmp;
+			break;
+		}
+	}
+
+	mprotect(
+		(void *)((char *)map + code_segment->p_vaddr),
+		code_segment->p_memsz,
+		PROT_READ | PROT_WRITE | PROT_EXEC);
+
+	free(woody32);
 }

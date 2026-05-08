@@ -22,7 +22,14 @@ t_map *get_binary_assets(const char *binary)
 	// on remet l'offset du fichier au debut pour mmap
 	lseek(fd, 0, SEEK_SET);
 
-	void *ptr = mmap(NULL, size, PROT_READ, MAP_PRIVATE, fd, 0);
+	void *ptr = mmap(
+		NULL,
+		size,
+		PROT_READ,
+		MAP_PRIVATE,
+		fd,
+		0);
+
 	close(fd);
 
 	if (ptr == MAP_FAILED)
@@ -57,9 +64,13 @@ int main(int ac, char **av)
 	else
 	{
 		munmap(map->offset, map->size);
+		free(map);
 		dprintf(STDERR_FILENO, "Error: The binary has an unknown offset size\n");
 		return EXIT_FAILURE;
 	}
+
+	munmap(map->offset, map->size);
+	free(map);
 
 	return EXIT_SUCCESS;
 }

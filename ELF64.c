@@ -39,5 +39,24 @@ void handle_ELF64(t_map *map)
 {
 	t_woody64 *woody64 = build_ELF64_data(map);
 	if (!woody64)
-		return ;
+		return;
+
+	Elf64_Phdr *code_segment = NULL;
+	for (int i = 0; i < woody64->ehdr->e_phnum; i++)
+	{
+		Elf64_Phdr *tmp = &woody64->phdr[i];
+
+		if (tmp->p_type == PT_LOAD && (tmp->p_flags & PF_X))
+		{
+			code_segment = tmp;
+			break;
+		}
+	}
+
+	mprotect(
+		(void *)((char *)map + code_segment->p_vaddr),
+		code_segment->p_memsz,
+		PROT_READ | PROT_WRITE | PROT_EXEC);
+
+	free(woody64);
 }
