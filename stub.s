@@ -45,11 +45,9 @@ _start:
     pop rdx
     pop r9    
 
-    ; 4. BOUCLE DE DECHIFFREMENT XTEA
-    ;    Pour chaque bloc de 8 bytes de .text :
-    ;      - chiffrer le compteur avec XTEA → keystream
-    ;      - XOR le bloc avec keystream
-    ;      - incrémenter le compteur
+    
+
+
         
     mov rax, 0x3333333333333333   ; placeholder original_entry
     jmp rax
