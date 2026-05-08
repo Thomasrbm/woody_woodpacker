@@ -28,7 +28,7 @@ t_woody32 *build_ELF32_data(t_map *map)
 	t_woody32 *woody32 = calloc(1, sizeof(t_woody32));
 	if (!woody32)
 	{
-		free(map);
+		munmap(map->offset, map->size);
 		return NULL;
 	}
 

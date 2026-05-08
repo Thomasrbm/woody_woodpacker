@@ -23,7 +23,7 @@ t_woody64 *build_ELF64_data(t_map *map)
 	t_woody64 *woody64 = calloc(1, sizeof(t_woody64));
 	if (!woody64)
 	{
-		free(map);
+		munmap(map->offset, map->size);
 		return NULL;
 	}
 
