@@ -47,4 +47,7 @@ void handle_ELF64(t_map *map);
 // main.c
 uint32_t *get_encrypt_key(void);
 
+// xtea.c
+void xtea_iter(uint8_t *data, size_t len, const uint32_t key[4]);
+
 #endif

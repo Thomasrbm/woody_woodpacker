@@ -65,6 +65,8 @@ void handle_ELF32(t_map *map)
 		code_segment->p_memsz,
 		PROT_READ | PROT_WRITE | PROT_EXEC);
 	
+	xtea_iter((uint8_t *)map + code_segment->p_vaddr, code_segment->p_memsz, woody32->key);
+
 	free(woody32->key);
 	free(woody32);
 }
