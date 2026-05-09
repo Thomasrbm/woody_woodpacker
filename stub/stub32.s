@@ -1,78 +1,103 @@
 %include "xtea32.inc"
 
 section .text
-global _start
+    global _start
 
 _start:
-    pushad
+    push eax
+    push ebx
+    push ecx
+    push edx
+    push esi
+    push edi
+    push ebp; (r8..r15 n'existent pas en 32-bit, on push juste ebp en plus)
 
-    ; ─── stub_runtime base via call/pop (PIC) ───
-    ; en 32-bit on a pas de [rip] alors on utilise call/pop pour
-    ; recuperer eip courant, puis on retire l'offset depuis _start.
-    call .get_pc
+
+    ; on peut pas lea pour l entry point car eip = pas accessible ici.
+    ; "lea rbx, [rel _start]". 32 = pas acces au EIP (ou sait pas ou on est dans la ram)
+    call .get_pc  ; push l adreese de la ft ex : 0x56550015
 .get_pc:
-    pop ebp                                 ; ebp = adresse runtime de .get_pc
-    sub ebp, .get_pc - _start               ; ebp = stub_runtime base
+    pop ebp ; recup adresse et 
+    sub ebp, .get_pc - _start ; calcul l offset = adresse entry point.
+
+
+
 
     ; ─── write(1, string, 14) ───
-    mov eax, 4                              ; sys_write
-    mov ebx, 1                              ; fd = stdout
-    lea ecx, [ebp + (string - _start)]      ; buf = string runtime addr
-    mov edx, 14                             ; count
-    int 0x80
+    mov eax, 4                      ; pas les meme syscall order
+    mov ebx, 1
+    lea ecx, [ebp + (string - _start)]      ;  ebp = 0x56550000   et string = 187 - start a 0 = 187                           
+    mov edx, 14                             ;  mov rdx, 14
+    int 0x80    ; pas syscall donc int = interrupt,  switch mode kernel  ET syscall .  int 0x00 c est divi par zero etc etc.    
 
     ; ─── mprotect(text_addr, text_size, RWX) ───
-    mov eax, 125                            ; sys_mprotect
-    lea ebx, [ebp + 0x11111111]             ; placeholder: mp_addr - stub_vaddr (signed)
-    mov ecx, 0x22222222                     ; placeholder: mprotect_size
-    mov edx, 7                              ; PROT_READ | WRITE | EXEC
-    int 0x80
+    mov eax, 125                            ;  mov rax, 10  (sys_mprotect)
+    mov ebx, ebp                            ;  adresse runtime cad  le binaire lui meme qu on modif pour en faire un woody
+    mov esi, 0x11111111
+    add ebx, esi
+    mov ecx, 0x22222222                     ;  mov rsi, 0x222... (ecx = mprotect_size en 32-bit)
+    mov edx, 7                              ;  mov rdx, 7
+    int 0x80                                ;  syscall
 
-    ; ─── setup boucle CTR ───
-    sub esp, 32                             ; reserve scratch frame (32 octets)
-    mov dword [esp + 8], 0                  ; counter low = 0
-    mov dword [esp + 12], 0                 ; counter high = 0
-    lea edi, [ebp + 0x44444444]             ; placeholder: text_vaddr - stub_vaddr (decrypt)
-    mov eax, 0x55555555                     ; placeholder: text_size (multiple de 8)
-    add eax, edi                            ; eax = end ptr
-    mov [esp + 16], eax                     ; sauvegarde end ptr
-    lea esi, [ebp + (key - _start)]         ; esi = key runtime addr
+    ; ─── Setup boucle CTR ───
+    sub esp, 32                             ;  sub rsp, 16 (XTEA32 a besoin de 32 octets)
+    mov edi, ebp                            ;  mov r12, rbx
+    mov ecx, 0x44444444                     ;  mov rcx, 0x444...
+    add edi, ecx                            ;  add r12, rcx
+    mov eax, 0x55555555                     ;  mov r13, 0x555... (eax car pas de 8eme reg dispo)
+    add eax, edi                            ;  add r13, r12
+    mov [esp + 16], eax                     ; (irreductible: end_ptr sur stack, aucun reg preserve par XTEA dispo)
+    mov dword [esp + 8], 0                  ;  xor r15, r15 (counter low — counter 64-bit en 2 mots)
+    mov dword [esp + 12], 0                 ;                     (counter high)
+    lea esi, [ebp + (key - _start)]         ;  lea r14, [rel key]
 
 .loop:
-    cmp edi, [esp + 16]
-    jae .done                               ; jae: unsigned compare
+    cmp edi, [esp + 16]                     ;  cmp r12, r13 (end_ptr est sur stack en 32-bit)
+    jae .done                               ;  jae .done
 
-    ; block[0..3] = counter low, block[4..7] = counter high
-    mov eax, [esp + 8]
+
+
+    ; ─── block[0..3] = counter low, block[4..7] = counter high ───
+    mov eax, [esp + 8]                      ;  mov [rsp], r15d
     mov [esp + 0], eax
-    mov eax, [esp + 12]
+    mov eax, [esp + 12]                     ;  mov rax, r15 / shr rax, 32 / mov [rsp+4], eax
     mov [esp + 4], eax
 
-    ; XTEA(block, key) → keystream
+    ; ─── XTEA(block, key) → keystream ───
     XTEA32_BLOCK
 
-    ; data[edi..edi+7] ^= keystream
-    mov eax, [esp + 0]
-    xor [edi], eax
+    ; ─── data[i..i+7] ^= keystream ───
+    mov eax, [esp + 0]                      ;  mov rax, [rsp]
+    xor [edi], eax                          ;  xor [r12], rax (en 2 xor 32-bit, irreductible)
     mov eax, [esp + 4]
     xor [edi + 4], eax
 
-    ; counter++ (64-bit add via add+adc)
-    add dword [esp + 8], 1
+    add edi, 8                              ;  add r12, 8
+    add dword [esp + 8], 1                  ;  inc r15 (64-bit en add+adc, irreductible)
     adc dword [esp + 12], 0
-
-    add edi, 8                              ; avancer pointeur
     jmp .loop
 
+
+
+
 .done:
-    add esp, 32                             ; libere scratch frame
+    add esp, 32
+    pop ebp                                 
+    pop edi                                 
+    pop esi                                 
+    pop edx
+    pop ecx                                 
+    pop ebx                                 
+    pop eax
 
-    ; ─── compute entry runtime tant que ebp est encore stub_runtime ───
-    lea eax, [ebp + 0x33333333]             ; placeholder: orig_entry - stub_vaddr (signed)
-    mov [esp + 28], eax                     ; ecrase saved-eax dans la zone pushad
-
-    popad                                   ; restore tous les regs (eax = entry_runtime)
-    jmp eax
+    ; ─── Saut vers l'entry original (PIE-aware) ───
+    mov eax, 0x33333333                     ;  mov rax, 0x333... (orig_entry offset)
+    call .get_pc2                           ;  lea rcx, [rel _start] — call/pop a la place
+.get_pc2:
+    pop ecx
+    sub ecx, .get_pc2 - _start              ; ecx = stub_runtime
+    add eax, ecx                            ;  add rax, rcx
+    jmp eax                                 ;  jmp rax
 
 string: db "....WOODY....", 0x0A
 
