@@ -22,14 +22,7 @@ t_map *get_binary_assets(const char *binary)
 	// on remet l'offset du fichier au debut pour mmap
 	lseek(fd, 0, SEEK_SET);
 
-	void *ptr = mmap(
-		NULL,
-		size,
-		PROT_READ,
-		MAP_PRIVATE,
-		fd,
-		0);
-
+	void *ptr = mmap(NULL, size, PROT_READ,	MAP_PRIVATE, fd, 0);
 	close(fd);
 
 	if (ptr == MAP_FAILED)
@@ -84,7 +77,6 @@ uint32_t *get_encrypt_key(void)
 
 int main(int ac, char **av)
 {
-	get_encrypt_key();
 	if (ac != 2)
 	{
 		dprintf(STDERR_FILENO, "Usage: %s <ELF32/64 binary>\n", av[0]);
