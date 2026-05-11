@@ -1,36 +1,6 @@
 #include "woody.h"
 #include "stub32.h"
 
-// placeholders 4 octets dans le stub32
-#define PH32_DELTA_TEXT_A 0x11111111U // mp_addr   - stub_vaddr (mprotect)
-#define PH32_MPROTECT_SIZE 0x22222222U
-#define PH32_DELTA_ENTRY 0x33333333U  // orig_entry - stub_vaddr
-#define PH32_DELTA_TEXT_B 0x44444444U // text_vaddr - stub_vaddr (decrypt)
-#define PH32_DECRYPT_SIZE 0x55555555U
-
-#define PAGE_SIZE_32 0x1000U
-
-typedef struct s_segs32
-{
-	Elf32_Phdr *text_phdr;
-	Elf32_Phdr *note_phdr;
-	uint32_t highest_vaddr_end;
-} t_segs32;
-
-typedef struct s_layout32
-{
-	uint32_t enc_file_off;
-	uint32_t enc_vaddr;
-	uint32_t enc_size;
-	uint32_t mp_addr;
-	uint32_t mp_size;
-	uint32_t stub_file_off;
-	uint32_t stub_vaddr;
-	size_t out_size;
-} t_layout32;
-
-// ─── verif du format ELF + alloc des donnees ──────────────────────────────
-
 bool is_ELF32(Elf32_Ehdr *header)
 {
 	if (!header)
@@ -75,8 +45,6 @@ static void free_woody32(t_woody32 *w)
 	free(w);
 }
 
-// ─── helpers bas-niveau ────────────────────────────────────────────────────
-
 static void patch_u32_32(uint8_t *buf, size_t len, uint32_t needle, uint32_t value)
 {
 	for (size_t i = 0; i + 4 <= len; i++)
@@ -110,8 +78,6 @@ static Elf32_Shdr *find_text_section32(t_woody32 *w)
 	}
 	return NULL;
 }
-
-// ─── etapes du packing ─────────────────────────────────────────────────────
 
 static bool find_segments32(t_woody32 *w, t_segs32 *s)
 {
@@ -227,8 +193,6 @@ static void write_woody32(uint8_t *out, size_t out_size, uint32_t *key)
 		printf("key_value: %08x%08x%08x%08x\n",
 			   key[0], key[1], key[2], key[3]);
 }
-
-// ─── orchestration ─────────────────────────────────────────────────────────
 
 void handle_ELF32(t_map *map)
 {
