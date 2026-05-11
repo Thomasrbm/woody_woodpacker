@@ -1,0 +1,21 @@
+1 clef en dev/urandom
+
+2/ open le binaire dans fd.
+
+3/ le read et get la structure pour chopper le type d elf.
+
+
+
+4/ calcule les offset entre .text etc la fin etc.
+
+5/ copie du binaire exacte dans un buffer pour pas le modif lui
+
+6/  encryption 
+
+
+7/ envoit dans adresse magique   avec le patch_stub64 
+
+mmcpy les valeur dans adresses maigique pour  le stub 
+
+
+8/  injection du stub  . memcpy a la fin du fichier binaire qu on a encrpyter 
