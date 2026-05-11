@@ -29,7 +29,6 @@ typedef struct s_layout32
 	size_t out_size;
 } t_layout32;
 
-// ─── verif du format ELF + alloc des donnees ──────────────────────────────
 
 bool is_ELF32(Elf32_Ehdr *header)
 {
@@ -75,8 +74,6 @@ static void free_woody32(t_woody32 *w)
 	free(w);
 }
 
-// ─── helpers bas-niveau ────────────────────────────────────────────────────
-
 static void patch_u32_32(uint8_t *buf, size_t len, uint32_t needle, uint32_t value)
 {
 	for (size_t i = 0; i + 4 <= len; i++)
@@ -110,8 +107,6 @@ static Elf32_Shdr *find_text_section32(t_woody32 *w)
 	}
 	return NULL;
 }
-
-// ─── etapes du packing ─────────────────────────────────────────────────────
 
 static bool find_segments32(t_woody32 *w, t_segs32 *s)
 {
@@ -227,8 +222,6 @@ static void write_woody32(uint8_t *out, size_t out_size, uint32_t *key)
 		printf("key_value: %08x%08x%08x%08x\n",
 			   key[0], key[1], key[2], key[3]);
 }
-
-// ─── orchestration ─────────────────────────────────────────────────────────
 
 void handle_ELF32(t_map *map)
 {

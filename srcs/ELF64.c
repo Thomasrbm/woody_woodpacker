@@ -31,8 +31,6 @@ typedef struct s_layout64
 	size_t out_size;
 } t_layout64;
 
-// ─── verif du format ELF + alloc des donnees ──────────────────────────────
-
 bool is_ELF64(Elf64_Ehdr *header)
 {
 	if (!header)
@@ -75,8 +73,6 @@ static void free_woody64(t_woody64 *w)
 	free(w->key);
 	free(w);
 }
-
-// ─── helpers bas-niveau ────────────────────────────────────────────────────
 
 // remplace la premiere occurence d'une valeur 64 bits dans le stub
 static void patch_u64(uint8_t *buf, size_t len, uint64_t needle, uint64_t value)
@@ -125,8 +121,6 @@ static Elf64_Shdr *find_text_section64(t_woody64 *w)
 	}
 	return NULL;
 }
-
-// ─── etapes du packing ─────────────────────────────────────────────────────
 
 // scan des phdrs : segment exec, PT_NOTE a hijacker, fin la plus haute en VMEM
 static bool find_segments64(t_woody64 *w, t_segs64 *s)
