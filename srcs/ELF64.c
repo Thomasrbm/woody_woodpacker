@@ -1,36 +1,6 @@
 #include "woody.h"
 #include "stub.h"
 
-// placeholders 8 octets dans le stub
-#define PH_DELTA_TEXT_A 0x1111111111111111ULL // mp_addr   - stub_vaddr (mprotect)
-#define PH_MPROTECT_SIZE 0x2222222222222222ULL
-#define PH_DELTA_ENTRY 0x3333333333333333ULL  // orig_entry - stub_vaddr
-#define PH_DELTA_TEXT_B 0x4444444444444444ULL // text_vaddr - stub_vaddr (decrypt)
-#define PH_DECRYPT_SIZE 0x5555555555555555ULL
-
-#define PAGE_SIZE 0x1000UL
-
-// resultats du scan des phdrs
-typedef struct s_segs64
-{
-	Elf64_Phdr *text_phdr;
-	Elf64_Phdr *note_phdr;
-	uint64_t highest_vaddr_end;
-} t_segs64;
-
-// emplacement de la zone chiffree, de la zone mprotect, et du stub
-typedef struct s_layout64
-{
-	uint64_t enc_file_off;
-	uint64_t enc_vaddr;
-	uint64_t enc_size;
-	uint64_t mp_addr;
-	uint64_t mp_size;
-	uint64_t stub_file_off;
-	uint64_t stub_vaddr;
-	size_t out_size;
-} t_layout64;
-
 bool is_ELF64(Elf64_Ehdr *header)
 {
 	if (!header)
